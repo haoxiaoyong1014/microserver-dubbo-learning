@@ -46,3 +46,19 @@ Dubbo是一套微服务系统的协调者，在它这套体系中，一共有三
 你在使用的时候需要将Dubbo的jar包引入到你的项目中，也就是每个服务都要引入Dubbo的jar包。然后当这些服务初始化的时候，Dubbo就会将当前系统需要发布的服务、以及当前系统的IP和端口号发送给注册中心，注册中心便会将其记录下来。这就是服务发布的过程。与此同时，也是在系统初始化的时候，Dubbo还会扫描一下当前系统所需要引用的服务，然后向注册中心请求这些服务所在的IP和端口号。接下来系统就可以正常运行了。当系统A需要调用系统B的服务的时候，A就会与B建立起一条RPC信道，然后再调用B系统上相应的服务。
 
 这，就是Dubbo的作用。
+
+#### 创建项目的组织结构
+* 创建一个Maven Project，命名为 microserver-dubbo-learning,
+  这个Project由多个Module构成，每个Module对应着“微服务”的一个子系统，可独立运行，是一个独立的项目。 这也是目前主流的项目组织形式，即多模块项目。
+* 在这个项目下创建各个子模块, 每个子模块都是一个独立的SpringBoot项目：
+    * micro-user 用户服务
+    * micro-order 订单服务
+    * micro-product 商品服务
+    * micro-analysis 数据分析服务
+    * micro-controller 本系统的控制层，和以往三层结构中的Controller层的作用一样，都是用作请求调度，只不过在微服务架构中，我们将它抽象成一个单独的系统，可以独立运行。
+    * micro-common 它处于本系统的最底层，被所有模块依赖，一些公用的类库都放在这里。
+    * micro-api 接口服务,
+    * micro-redis 我们将Redis封装成一个单独的服务，运行在独立的容器中，当哪一个模块需要使用Redis的时候，仅需要引入该服务即可，就免去了各种繁琐的、重复的配置。而这些配置均在micro-redis系统中完成了。
+![image.png](https://upload-images.jianshu.io/upload_images/15181329-24de1aac5d01f7e9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+
