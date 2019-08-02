@@ -61,4 +61,10 @@ Dubbo是一套微服务系统的协调者，在它这套体系中，一共有三
     * micro-redis 我们将Redis封装成一个单独的服务，运行在独立的容器中，当哪一个模块需要使用Redis的时候，仅需要引入该服务即可，就免去了各种繁琐的、重复的配置。而这些配置均在micro-redis系统中完成了。
 ![image.png](https://upload-images.jianshu.io/upload_images/15181329-24de1aac5d01f7e9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
+#### 构建模块的依赖关系
+目前为止，模块之间没有任何联系，下面我们要通过pom文件来指定它们之间的依赖关系，依赖关系如下图所示：
+![image.png](https://upload-images.jianshu.io/upload_images/15181329-d2c9164c839fe0e6.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
+micro-user、micro-analysis、micro-product、micro-order这四个系统相当于以往三层结构的Service层，提供系统的业务逻辑，只不过在微服务结构中，Service层的各个模块都被抽象成一个个单独的子系统，它们提供RPC接口供上面的micro-controller调用。它们之间的调用由Dubbo来完成，所以它们的pom文件中并不需要作任何配置。而这些模块和micro-common之间是本地调用，因此需要将micro-common打成jar包，并让这些模块依赖这个jar，因此就需要在所有模块的pom中配置和micro-common的依赖关系。
+
+此外，为了简化各个模块的配置，我们将所有模块的通用依赖放在Project的pom文件中，然后让所有模块作为Project的子模块。这样子模块就可以从父模块中继承所有的依赖，而不需要自己再配置了。
