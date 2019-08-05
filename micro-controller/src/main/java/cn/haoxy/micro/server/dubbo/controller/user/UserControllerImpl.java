@@ -1,4 +1,4 @@
-package cn.haoxy.micro.server.dubbo.controller;
+package cn.haoxy.micro.server.dubbo.controller.user;
 
 import cn.haoxy.micro.server.dubbo.api.user.UserController;
 import cn.haoxy.micro.server.dubbo.common.entity.user.UserEntity;

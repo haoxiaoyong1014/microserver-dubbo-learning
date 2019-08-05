@@ -9,7 +9,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <groupId>cn.haoxy.micro.server.dubbo.redis</groupId>
     <artifactId>micro-redis</artifactId>
+    <version>v1.0.0</version>
 
 
 </project>
