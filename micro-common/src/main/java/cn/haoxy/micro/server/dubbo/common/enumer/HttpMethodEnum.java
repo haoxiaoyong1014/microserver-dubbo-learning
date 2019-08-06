@@ -10,6 +10,7 @@ package cn.haoxy.micro.server.dubbo.common.enumer;
  */
 public enum  HttpMethodEnum {
 
+    POSTANDGET(0,"POST_GET"),
     GET(1,"GET"),
     POST(2,"POST"),
     PUT(3,"PUT"),
