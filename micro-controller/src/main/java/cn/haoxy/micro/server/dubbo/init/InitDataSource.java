@@ -57,7 +57,6 @@ public class InitDataSource implements CommandLineRunner {
     }
 
     private void loadAccessAuth() {
-        // 第一个class类的集合
 
         //获取自定类上的指定注解
         AuthScan authScan = AnnotationUtil.getAnnotationValueByClass(this.getClass(), AuthScan.class);
@@ -101,6 +100,7 @@ public class InitDataSource implements CommandLineRunner {
     }
 
     private AccessAuthEntity buildAccessAuthEntity(Method method) {
+
         //获取指定方法上的指定注解
         RequestMapping requestMapping = AnnotationUtil.getAnnotationValueByMethod(method, RequestMapping.class);
         GetMapping getMapping = AnnotationUtil.getAnnotationValueByMethod(method, GetMapping.class);
