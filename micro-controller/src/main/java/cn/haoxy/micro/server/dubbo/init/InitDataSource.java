@@ -81,10 +81,11 @@ public class InitDataSource implements CommandLineRunner {
                     logger.debug("", accessAuthEntity);
                 }
             }
-            //暂存本地
-            RedisServiceTemp.accessAuthMap = accessAuthMap;
-            logger.info("接口访问权限已加载完毕！"+accessAuthMap);
         }
+        //暂存本地
+        RedisServiceTemp.accessAuthMap = accessAuthMap;
+        logger.info("接口访问权限已加载完毕！" + accessAuthMap);
+        logger.info("接口访问权限已加载完毕！" + accessAuthMap.size());
     }
 
     /**
