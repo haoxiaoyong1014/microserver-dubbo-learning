@@ -24,7 +24,6 @@ import javax.servlet.http.HttpServletResponse;
  * github:https://github.com/haoxiaoyong1014
  */
 @RestController
-@RequestMapping(value = "user")
 public class UserControllerImpl implements UserController {
 
 

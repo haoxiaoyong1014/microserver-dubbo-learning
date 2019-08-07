@@ -1,6 +1,7 @@
 package cn.haoxy.micro.server.dubbo.handle;
 
 import cn.haoxy.micro.server.dubbo.common.entity.user.AccessAuthEntity;
+import cn.haoxy.micro.server.dubbo.common.entity.user.PermissionEntity;
 import cn.haoxy.micro.server.dubbo.common.entity.user.UserEntity;
 import cn.haoxy.micro.server.dubbo.common.exception.CommonBizException;
 import cn.haoxy.micro.server.dubbo.common.exception.ExpCodeEnum;
@@ -79,7 +80,54 @@ public class AccessAuthHandle {
         UserEntity userEntity = getUserEntity(sessionID);
         //获取接口权限信息
         AccessAuthEntity accessAuthEntity = getAccessAuthEntity(method, url);
+        //查询权限
+        authentication(userEntity,accessAuthEntity);
+    }
 
+    private void authentication(UserEntity userEntity, AccessAuthEntity accessAuthEntity) {
+        //不需要登录
+        if(!accessAuthEntity.isLogin()){
+            return;
+        }
+        //检查是否登录
+        checkLogin(userEntity,accessAuthEntity);
+
+        //检查是否有权限
+        checkPermission(userEntity,accessAuthEntity);
+    }
+
+    /**
+     * 检查当前用户是否拥有访问该接口的权限
+     * @param userEntity 用户信息
+     * @param accessAuthEntity 接口权限信息
+     */
+    private void checkPermission(UserEntity userEntity, AccessAuthEntity accessAuthEntity) {
+        //获取接口权限
+        String accessPermission = accessAuthEntity.getPermission();
+        //获取用户权限
+        List<PermissionEntity> permissionList = userEntity.getRoleEntity().getPermissionList();
+        if(CollectionUtils.isNotEmpty(permissionList)){
+            for (PermissionEntity permissionEntity : permissionList) {
+                if(permissionEntity.getPermission().equals(accessPermission)){
+                    return;
+                }
+            }
+        }
+        // 没有权限
+        throw new CommonBizException(ExpCodeEnum.NO_PERMISSION);
+    }
+
+    /**
+     * 检查当前接口是否需要登录
+     * @param userEntity 用户信息
+     * @param accessAuthEntity 接口访问权限
+     */
+
+    private void checkLogin(UserEntity userEntity, AccessAuthEntity accessAuthEntity) {
+        // 尚未登录
+        if (accessAuthEntity.isLogin() && userEntity==null) {
+            throw new CommonBizException(ExpCodeEnum.UNLOGIN);
+        }
     }
 
     /**
