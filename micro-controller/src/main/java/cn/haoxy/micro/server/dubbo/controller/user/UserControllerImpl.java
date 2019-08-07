@@ -10,9 +10,7 @@ import cn.haoxy.micro.server.dubbo.common.utils.RedisPrefixUtil;
 import cn.haoxy.micro.server.dubbo.redis.RedisServiceTemp;
 import com.alibaba.dubbo.config.annotation.Reference;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
@@ -34,7 +32,7 @@ public class UserControllerImpl implements UserController {
     @Value("${session.SessionIdName}")
     private String sessionIdName;
 
-    @RequestMapping(value = "login")
+    @PostMapping(value = "login")
     @Override
     public Result login(@RequestBody LoginReq loginReq, HttpServletResponse httpRsp) {
         UserEntity userEntity = userService.login(loginReq);
