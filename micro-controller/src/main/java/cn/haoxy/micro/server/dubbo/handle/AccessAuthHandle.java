@@ -34,6 +34,7 @@ import java.util.Map;
  * E-mail:hxyHelloWorld@163.com
  * github:https://github.com/haoxiaoyong1014
  * <p>
+ *    定义拦截器,在 DispatcherServlet之前执行
  * 访问权限处理类(所有请求都要经过此类)
  */
 /*@Aspect
@@ -71,6 +72,7 @@ public class AccessAuthHandle implements HandlerInterceptor {
         //访问鉴权
         authentication();
     }*/
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         this.response = response;
