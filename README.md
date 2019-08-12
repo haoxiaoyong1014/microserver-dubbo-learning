@@ -232,14 +232,7 @@ Dubbo一共定义了三种角色，分别是：服务提供者、服务消费者
 </dependency>
 ```
 
-* 配置服务消费者(micro-controller)
 
-```properties
-## Dubbo 服务消费者配置
-dubbo.application.name=controller-consumer
-dubbo.registry.address=zookeeper://127.0.0.1:2181
-dubbo.scan.base-packages=cn.haoxy.micro.server.dubbo
-```
 
 * 发布服务
 
@@ -295,4 +288,33 @@ dubbo.scan.base-packages=cn.haoxy.micro.server.dubbo.user.service  # 服务实�
 > 假设，micro-controller需要调用micro-user 提供的登录功能，此时它就需要引用UserService这项远程服务。下面来介绍服务引用的方法。
 
 
-声明需要引用的服务,引用服务非常简单，你只需要在引用的类中声明一项服务，然后用@Reference标识，如下所示
+声明需要引用的服务,引用服务非常简单，你只需要在引用的类中声明一项服务，然后用@Reference标识，如下所示:
+
+```java
+@RestController
+public class UserControllerImpl implements UserController {
+
+
+    @Reference(version = "v1.0.0")
+    UserService userService;
+
+    @PostMapping(value = "login")
+    @Override
+    public Result login(@RequestBody LoginReq loginReq, HttpServletResponse httpRsp) {
+        UserEntity userEntity = userService.login(loginReq);
+        return Result.newSuccessResult(userEntity);
+    }
+}
+
+```
+配置服务消费者(micro-controller)
+
+```properties
+## Dubbo 服务消费者配置
+dubbo.application.name=controller-consumer # 本服务的名称
+dubbo.registry.address=zookeeper://127.0.0.1:2181  # zookeeper所在服务器的IP和端口号
+dubbo.scan.base-packages=cn.haoxy.micro.server.dubbo  # 引用服务的路径
+```
+
+> 上述操作完成后，当micro-controller初始化的时候，Dubbo就会扫描dubbo.scan.base-packages所指定的路径，并找到所有被@Reference修饰的成员变量；然后向Zookeeper请求该服务所在的IP和端口号。当调用userService.login()的时候，Dubbo就会向micro-user发起请求，完成调用的过程。这个调用过程是一次RPC调用，但作为程序猿来说，这和调用一个本地函数没有任何区别，远程调用的一切都由Dubbo来帮你完成。这就是Dubbo的作用。
+
