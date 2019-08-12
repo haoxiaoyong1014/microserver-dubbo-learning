@@ -61,10 +61,238 @@ Dubbo是一套微服务系统的协调者，在它这套体系中，一共有三
     * micro-redis 我们将Redis封装成一个单独的服务，运行在独立的容器中，当哪一个模块需要使用Redis的时候，仅需要引入该服务即可，就免去了各种繁琐的、重复的配置。而这些配置均在micro-redis系统中完成了。
 ![image.png](https://upload-images.jianshu.io/upload_images/15181329-24de1aac5d01f7e9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-#### 构建模块的依赖关系
+
+#### 下面我们开始动手创建项目
+
+**1,new 一个 Project**
+
+groupId:cn.haoxy.micro.server.dubbo
+artifactId:microserver-dubbo-learning
+version:v1.0.0
+
+![image.png](https://upload-images.jianshu.io/upload_images/15181329-7a5e18d27de7ac3e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+**2,创建Model,在Project上创建model**
+
+![image.png](https://upload-images.jianshu.io/upload_images/15181329-8434e327af21a278.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+依次创建好所有的model,如图所示:
+
+![image.png](https://upload-images.jianshu.io/upload_images/15181329-b6cca7c1299e2486.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+**3,构建模块之间的依赖关系:**
+
 目前为止，模块之间没有任何联系，下面我们要通过pom文件来指定它们之间的依赖关系，依赖关系如下图所示：
+
 ![image.png](https://upload-images.jianshu.io/upload_images/15181329-d2c9164c839fe0e6.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 micro-user、micro-analysis、micro-product、micro-order这四个系统相当于以往三层结构的Service层，提供系统的业务逻辑，只不过在微服务结构中，Service层的各个模块都被抽象成一个个单独的子系统，它们提供RPC接口供上面的micro-controller调用。它们之间的调用由Dubbo来完成，所以它们的pom文件中并不需要作任何配置。而这些模块和micro-common之间是本地调用，因此需要将micro-common打成jar包，并让这些模块依赖这个jar，因此就需要在所有模块的pom中配置和micro-common的依赖关系。
 
 此外，为了简化各个模块的配置，我们将所有模块的通用依赖放在Project的pom文件中，然后让所有模块作为Project的子模块。这样子模块就可以从父模块中继承所有的依赖，而不需要自己再配置了。
+
+* 首先将micro-common的打包方式设成jar,当打包这个模块的时候，Maven会将它打包成jar，并安装在本地仓库中。这样其他模块打包的时候就可以引用这个jar。
+
+```xml
+<dependency>
+    <artifactId>micro-common</artifactId>
+    <groupId>cn.haoxy.micro.server.dubbo.common</groupId>
+    <version>v1.0.0</version>
+    <packaging>jar</packaging>
+</dependency>
+```
+
+* 将其他模块的打包方式设为war,除了micro-common外，其他模块都是一个个可独立运行的子系统，需要在web容器中运行，所以我们需要将这些模块的打包方式设成war
+
+```
+    <artifactId>micro-user</artifactId>
+    <groupId>cn.haoxy.micro.server.dubbo.user</groupId>
+    <version>v1.0.0</version>
+    <packaging>war</packaging>
+```
+
+* 在总pom中指定子模块modules标签指定了当前模块的子模块是谁，但是仅在父模块的pom文件中指定子模块还不够，还需要在子模块的pom文件中指定父模块是谁。
+
+```xml
+<modules>
+  <module>micro-user</module>
+  <module>micro-order</module>
+  <module>micro-product</module>
+  <module>micro-api</module>
+  <module>micro-controller</module>
+  <module>micro-analysis</module>
+  <module>micro-common</module>
+  <module>micro-redis</module>
+</modules>
+```
+* 在子模块中指定父模块
+
+例如在 micro-user子模块中的 pom.xml中指定父模块
+
+```xml
+<parent>
+   <artifactId>microserver-dubbo-learning</artifactId>
+   <groupId>cn.haoxy.micro.server.dubbo</groupId>
+   <version>v1.0.0</version>
+</parent>
+```
+> 到此为止，模块的依赖关系配置完毕！但要注意模块打包的顺序。由于所有模块都依赖于micro-common模块，因此在构建模块时，首先需要编译、打包、安装micro-common，将它打包进本地仓库中，这样上层模块才能引用到。当该模块安装完毕后，再构建上层模块。否则在构建上层模块的时候会出现找不到micro-common中类库的问题。
+
+**4,在父模块的pom中添加所有子模块公用的依赖**
+
+```xml
+<dependencies>
+        <dependency>
+            <artifactId>micro-common</artifactId>
+            <groupId>cn.haoxy.micro.server.dubbo.common</groupId>
+            <version>v1.0.0</version>
+        </dependency>
+        <!--Spring MVC-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!--Test-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- MyBatis -->
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>1.3.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+            <version>1.0.11</version>
+        </dependency>
+
+        <!-- AOP -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+        <!-- guava -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>23.3-jre</version>
+        </dependency>
+
+        <!--fastjson-->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.31</version>
+        </dependency>
+    </dependencies>
+```
+
+当父模块的pom中配置了公用依赖后，子模块的pom文件将非常简洁，如下所示：
+
+```xml
+<modelVersion>4.0.0</modelVersion>
+<parent>
+  <artifactId>microserver-dubbo-learning</artifactId>
+  <groupId>cn.haoxy.micro.server.dubbo</groupId>
+  <version>v1.0.0</version>
+</parent>
+
+
+<artifactId>micro-user</artifactId>
+<groupId>cn.haoxy.micro.server.dubbo.user</groupId>
+<version>v1.0.0</version>
+
+```
+
+**5,整合dubbo**
+
+Dubbo一共定义了三种角色，分别是：服务提供者、服务消费者、注册中心。注册中心是服务提供者和服务消费者的桥梁，服务消费者会在初始化的时候将自己的IP和端口号发送给注册中心，而服务消费者通过注册中心知道服务提供者的IP和端口号。
+
+在Dubbo中，注册中心有多种选择，Dubbo最为推荐的即为ZooKeeper，本文采用ZooKeepeer作为Dubbo的注册中心。
+
+[dubbo官网](http://dubbo.apache.org/en-us/)
+
+* 父pom文件中引入dubbo依赖
+
+```xml
+<dependency>
+   <groupId>com.alibaba.boot</groupId>
+   <artifactId>dubbo-spring-boot-starter</artifactId>
+   <version>0.2.0</version>
+</dependency>
+```
+
+* 配置服务消费者(micro-controller)
+
+```properties
+## Dubbo 服务消费者配置
+dubbo.application.name=controller-consumer
+dubbo.registry.address=zookeeper://127.0.0.1:2181
+dubbo.scan.base-packages=cn.haoxy.micro.server.dubbo
+```
+
+* 发布服务
+
+> 假设，我们需要将micro-user项目中的UserService发布成一项RPC服务，供其他系统远程调用，那么我们究竟该如何借助Dubbo来实现这一功能呢？
+
+在micro-common中定义UserService的接口,由于服务的发布和引用都依赖于接口，但服务的发布方和引用方在微服务架构中往往不在同一个系统中，所以需要将需要发布和引用的接口放在公共类库中，从而双方都能够引用。接口如下所示：
+
+```java
+
+public interface UserService {
+
+
+    UserEntity login(LoginReq loginReq);
+
+}
+
+```
+
+
+在micro-user中定义接口的实现,在实现类上需要加上Dubbo的@Service注解，从而Dubbo会在项目启动的时候扫描到该注解，将它发布成一项RPC服务。
+
+```java
+@Service(version = "v1.0.0")
+@org.springframework.stereotype.Service
+public class UserServiceImpl implements UserService {
+
+    @Autowired
+    UserDAO userDAO;
+    @Override
+    public UserEntity login(LoginReq loginReq) {
+        // do something ....
+
+    }
+}
+```
+
+配置服务提供者(micro-user、micro-analysis、micro-product、micro-order)
+
+```properties
+## Dubbo 服务提供者配置
+dubbo.application.name=user-provider # 本服务的名称
+dubbo.registry.address=127.0.0.1:2181 # ZooKeeper所在服务器的IP和端口号
+dubbo.registry.protocol=zookeeper
+dubbo.protocol.name=dubbo  # RPC通信所采用的协议
+dubbo.protocol.port=20880  # 本服务对外暴露的端口号
+dubbo.scan.base-packages=cn.haoxy.micro.server.dubbo.user.service  # 服务实现类所在的路径
+```
+
+> 按照上面配置完成后，当micro-user系统初始化的时候，就会扫描dubbo.scan.base-packages所指定的路径下的@Service注解，该注解标识了需要发布成RPC服务的类。Dubbo会将这些类的接口信息+本服务器的IP+dubbo.protocol.port所指定的端口号发送给Zookeeper，Zookeeper会将这些信息存储起来。 这就是服务发布的过程，下面来看如何引用一项RPC服务。
+
+* 引用服务
+
+> 假设，micro-controller需要调用micro-user 提供的登录功能，此时它就需要引用UserService这项远程服务。下面来介绍服务引用的方法。
+
+
+声明需要引用的服务,引用服务非常简单，你只需要在引用的类中声明一项服务，然后用@Reference标识，如下所示
