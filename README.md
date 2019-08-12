@@ -307,6 +307,8 @@ public class UserControllerImpl implements UserController {
 }
 
 ```
+注意: @Reference(version = "v1.0.0")和@Service(version = "v1.0.0")的version的值一定要一致;
+
 配置服务消费者(micro-controller)
 
 ```properties
